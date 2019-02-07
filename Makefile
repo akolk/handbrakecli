@@ -5,9 +5,9 @@ VERSION ?= $(shell git describe --abbrev=0)
 TAG ?= $(shell if [[ "$(BRANCH)" == "master" ]]; then echo "latest"; else echo $(VERSION); fi)
 
 build: Dockerfile
-	docker build -t carolynvs/handbrakecli:$(TAG) --build-arg VERSION=$(VERSION) .
+	docker build -t akolk/handbrakecli:$(TAG) --build-arg VERSION=$(VERSION) .
 
 push:
-	docker push carolynvs/handbrakecli:$(TAG)
+	docker push akolk/handbrakecli:$(TAG)
 
 .PHONY: push
