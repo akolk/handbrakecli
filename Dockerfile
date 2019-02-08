@@ -17,9 +17,11 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 # Trick docker build in case qemu binary is not in dir.
 COPY .blank tmp/qemu-$ARCH-static* /usr/bin/
+RUN echo "deb http://honeybadger-apt.zapto.org wheezy main contrib non-free"  >> /etc/apt/sources.list
+RUN wget -qO - "http://honeybadger-apt.zapto.org/index.php?dir=&file=matt.askthebadger%40gmail.com.gpg.key" | apt-key add -
 
 RUN apt-get update && \
     apt-get install -y software-properties-common && \
-    apt-get install -y handbrake-cli_${VERSION}+ds1-1_${HANDBRAKE_ARCH}.deb
+    apt-get install -y handbrakecli
 
 ENTRYPOINT ["HandBrakeCLI"]
