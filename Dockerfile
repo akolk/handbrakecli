@@ -20,8 +20,6 @@ COPY .blank tmp/qemu-$ARCH-static* /usr/bin/
 
 RUN apt-get update && \
     apt-get install -y software-properties-common && \
-    add-apt-repository ppa:stebbins/handbrake-releases && \
-    apt-get update && \
-    apt-get install -y handbrake-cli=$VERSION-zhb-1ppa1~bionic1 
+    apt-get install -y handbrake-cli_${VERSION}+ds1-1_${HANDBRAKE_ARCH}.deb
 
 ENTRYPOINT ["HandBrakeCLI"]
