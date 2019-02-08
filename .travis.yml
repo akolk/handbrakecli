@@ -1,13 +1,49 @@
-sudo: required # Run in a container
+sudo: required
+language: bash
 services:
-- docker # Allow running docker commands
+  - docker
 
 env:
   global:
-  - BRANCH=$TRAVIS_BRANCH
+    - IMAGE=akolk/handbrakecli
+    - QEMU_VERSION=v2.9.1-1
+  matrix:
+    # TARGET = Base image architecture to be used
+    # ARCH = qemu binary to be downloaded from https://github.com/multiarch/qemu-user-static/releases
+    # TAG = Tag to be applied to the image when upload to DockerHub
+    - TARGET=amd64 ARCH=amd64 TAG=amd64 HANDBRAKECLI_ARCH=amd64
+    - TARGET=arm64v8 ARCH=aarch64 TAG=arm64 HANDBRAKECLI_ARCH=arm64
+    - TARGET=arm32v7 ARCH=arm TAG=arm HANDBRAKECLI_ARCH=armv7
 
-script: make build
-
-after_success:
-  - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
-  - make push
+script:
+  - 'export VERSION=$(curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/HandBrake/HandBrake/releases/latest | jq -r ".tag_name")'
+  #- 'export VERSION=$(curl -s  https://api.github.com/repos/grafana/grafana/releases/latest | jq -r ".tag_name")'
+  - echo "Build image for HandbrakeCLI version $VERSION"
+  - ./travis-build.sh
+  - >
+    if [ "$TRAVIS_BRANCH" == "master" -a "$TRAVIS_PULL_REQUEST" == "false" ]; then
+      # Push image
+      docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
+      docker push "$IMAGE":"$VERSION"-"$TAG"
+    fi
+jobs:
+  include:
+    - stage: deploy
+      before_install:
+        - echo "No before_install"
+      before_script:
+        - echo "No before_script"
+      script:
+        - 'export VERSION=$(curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/HandBrake/HandBrake/releases/latest | jq -r ".tag_name")'
+        - docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
+        - echo "Downloading manifest-tool"
+        - wget https://github.com/estesp/manifest-tool/releases/download/v0.7.0/manifest-tool-linux-amd64
+        - mv manifest-tool-linux-amd64 manifest-tool
+        - chmod +x manifest-tool
+        - ./manifest-tool --version
+        - echo "Pushing manifest "$IMAGE":latest"
+        - ./manifest-tool push from-args --platforms linux/arm,linux/arm64,linux/amd64 --template "$IMAGE:$VERSION-ARCH" --target "$IMAGE:latest"
+        - ./manifest-tool push from-args --platforms linux/arm,linux/arm64,linux/amd64 --template "$IMAGE:$VERSION-ARCH" --target "$IMAGE:$VERSION"
+      env:
+        # Overwrite env to avoid running stage for entire
+        TARGET=none ARCH=none TAG=none HANDBRAKECLI_ARCH=none
