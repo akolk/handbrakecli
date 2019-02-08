@@ -17,6 +17,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 # Trick docker build in case qemu binary is not in dir.
 COPY .blank tmp/qemu-$ARCH-static* /usr/bin/
+RUN apt-get install -y wget
 RUN echo "deb http://honeybadger-apt.zapto.org wheezy main contrib non-free"  >> /etc/apt/sources.list
 RUN wget -qO - "http://honeybadger-apt.zapto.org/index.php?dir=&file=matt.askthebadger%40gmail.com.gpg.key" | apt-key add -
 
