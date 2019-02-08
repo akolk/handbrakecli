@@ -19,7 +19,7 @@ script:
   - 'export VERSION=$(curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/HandBrake/HandBrake/releases/latest | jq -r ".tag_name")'
   #- 'export VERSION=$(curl -s  https://api.github.com/repos/grafana/grafana/releases/latest | jq -r ".tag_name")'
   - echo "Build image for HandbrakeCLI version $VERSION"
-  - chmod +x travis_build.sh
+  - chmod +x travis-build.sh
   - ./travis-build.sh
   - >
     if [ "$TRAVIS_BRANCH" == "master" -a "$TRAVIS_PULL_REQUEST" == "false" ]; then
